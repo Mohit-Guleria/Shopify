@@ -1,0 +1,354 @@
+{% layout none %}
+
+<div id="custom-cart-page">
+  <div class="container">
+    <h1>Your Shopping Cart</h1>
+    <div id="cart-items" class="cart-items-container"></div>
+    <div class="cart-summary" id="cart-summary">
+      <button onclick="window.location.href='/checkout'" id="checkout-button" class="btn checkout">Proceed to Checkout</button>
+    </div>
+    <div class="footer-text">
+      <p>Developed by <strong>Mohit Guleria</strong></p>
+    </div>
+  </div>
+</div>
+
+<style>
+#custom-cart-page {
+  background-color: #f4f7f9;
+  padding: 40px 20px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #e0eafc 100%);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  position: relative;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 28px;
+}
+
+.cart-items-container {
+  margin-bottom: 30px;
+}
+
+.cart-item {
+  border-bottom: 1px solid #ddd;
+  padding: 15px;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.cart-item:hover {
+  background-color: #f1f5f9;
+  transform: scale(1.02);
+}
+
+.cart-item img {
+  width: 120px;
+  height: auto;
+  border-radius: 6px;
+  margin-right: 20px;
+}
+
+.cart-item-details {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.cart-item h3 {
+  margin: 0;
+  font-size: 22px;
+  color: #333;
+}
+
+.cart-item p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.description-container {
+  display: none;
+  position: absolute;
+  top: 15px;
+  left: 140px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 250px;
+  z-index: 10;
+  font-size: 14px;
+  color: #333;
+}
+
+.cart-item:hover .description-container {
+  display: block;
+}
+
+.quantity-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  margin-left: 20px;
+  position: relative;
+}
+
+.quantity-container label {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.quantity-container input {
+  width: 60px;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.quantity-container .update-quantity {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  display: none; /* Hidden initially, shown when needed */
+  margin-bottom: 5px;
+}
+
+.quantity-container .update-quantity:hover {
+  background-color: #0056b3;
+}
+
+.quantity-container .remove-item {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.quantity-container .remove-item:hover {
+  background-color: #c82333;
+}
+
+.cart-summary {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  font-size: 16px;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  margin: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.checkout {
+  background-color: #28a745;
+}
+
+.checkout:hover {
+  background-color: #218838;
+}
+
+.footer-text {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
+  text-align: right;
+  font-size: 14px;
+  color: #888;
+}
+
+.footer-text p {
+  margin: 0;
+  font-size: 16px;
+  color: #666;
+}
+
+.footer-text strong {
+  color: #333;
+}
+
+.empty-cart-message {
+  text-align: center;
+  font-size: 18px;
+  color: #555;
+  margin-top: 50px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-cart-message img {
+  width: 80px;
+  margin-bottom: 15px;
+}
+
+.empty-cart-message h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.empty-cart-message p {
+  font-size: 16px;
+  color: #666;
+}
+
+.empty-cart-message .btn {
+  display: block;
+  width: 200px;
+  margin: 20px auto;
+}
+</style>
+
+<script>
+function formatMoney(amount) {
+  amount = Number(amount) / 100; // Convert cents to dollars
+  return `$${amount.toFixed(2)}`; // Format with two decimal places
+}
+
+function updateCartDisplay() {
+  fetch('/cart.js')
+    .then(response => response.json())
+    .then(cart => {
+      const cartItemsContainer = document.getElementById('cart-items');
+      const cartSummary = document.getElementById('cart-summary');
+      const emptyCartMessage = document.createElement('div');
+      emptyCartMessage.className = 'empty-cart-message';
+
+      cartItemsContainer.innerHTML = ''; // Clear previous cart items
+
+      if (!cart || !cart.items) {
+        console.error('Invalid cart data:', cart);
+        return;
+      }
+
+      if (cart.item_count === 0) {
+        cartSummary.style.display = 'none'; // Hide checkout button when cart is empty
+        emptyCartMessage.innerHTML = `
+          <img src="path_to_your_empty_cart_image.png" alt="Empty Cart"/>
+          <h2>Your Cart is Empty</h2>
+          <p>It looks like you haven't added anything to your cart yet. Start shopping now to find great deals!</p>
+          <button onclick="window.location.href='/collections/all'" class="btn continue-shopping">Continue Shopping</button>
+        `;
+        cartItemsContainer.appendChild(emptyCartMessage);
+        return;
+      }
+
+      cart.items.forEach(item => {
+        if (item.image && item.title && item.quantity && item.price) {
+          cartItemsContainer.innerHTML += `
+            <div class="cart-item">
+              <img src="${item.image}" alt="${item.title}" />
+              <div class="cart-item-details">
+                <h3>${item.title}</h3>
+                <p>Price: ${formatMoney(item.price)}</p>
+                <p>Total: ${formatMoney(item.price * item.quantity)}</p>
+                <div class="quantity-container">
+                  <input type="number" min="1" value="${item.quantity}" data-id="${item.id}" class="quantity-input" />
+                  <button data-id="${item.id}" class="update-quantity" style="display: none;">Update Quantity</button>
+                </div>
+                <button data-id="${item.id}" class="remove-item">Remove</button>
+              </div>
+              <div class="description-container">
+                ${item.description ? item.description : 'Product description not available at the moment.'}
+              </div>
+            </div>
+          `;
+        } else {
+          console.error('Item data missing:', item);
+        }
+      });
+
+      if (cart.item_count > 0) {
+        cartSummary.style.display = 'block'; // Show checkout button when cart has items
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching cart:', error);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateCartDisplay();
+
+  document.addEventListener('input', event => {
+    if (event.target.classList.contains('quantity-input')) {
+      const quantityInput = event.target;
+      const updateButton = quantityInput.nextElementSibling; // Get the update button next to the quantity input
+      updateButton.style.display = 'inline-block'; // Show the update button when quantity changes
+    }
+  });
+
+  document.addEventListener('click', event => {
+    if (event.target.classList.contains('update-quantity')) {
+      const updateButton = event.target;
+      const quantityInput = updateButton.previousElementSibling; // Get the quantity input preceding the button
+      const itemId = updateButton.getAttribute('data-id');
+      const newQuantity = quantityInput.value;
+
+      fetch(`/cart/change.js`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: itemId, quantity: newQuantity })
+      })
+      .then(response => response.json())
+      .then(() => {
+        updateCartDisplay();
+        updateButton.style.display = 'none'; // Hide the update button after updating the cart
+      })
+      .catch(error => console.error('Error updating quantity:', error));
+    } else if (event.target.classList.contains('remove-item')) {
+      const itemId = event.target.getAttribute('data-id');
+
+      fetch(`/cart/change.js`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: itemId, quantity: 0 })
+      })
+      .then(response => response.json())
+      .then(() => updateCartDisplay())
+      .catch(error => console.error('Error removing item:', error));
+    }
+  });
+});
+</script>
