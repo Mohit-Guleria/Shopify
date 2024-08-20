@@ -1,4 +1,4 @@
-{% layout none %}
+{% layout 'theme' %}
 
 <div id="custom-cart-page">
   <div class="container">
@@ -6,6 +6,7 @@
     <div id="cart-items" class="cart-items-container"></div>
     <div class="cart-summary" id="cart-summary">
       <button onclick="window.location.href='/checkout'" id="checkout-button" class="btn checkout">Proceed to Checkout</button>
+      <button onclick="window.location.href='/shop'" id="shop-button" class="btn shop">Go to Shop</button>
     </div>
     <div class="footer-text">
       <p>Developed by <strong>Mohit Guleria</strong></p>
@@ -243,6 +244,14 @@ h1 {
   background-color: #218838;
 }
 
+.shop {
+  background-color: #007bff;
+}
+
+.shop:hover {
+  background-color: #0056b3;
+}
+
 /* Footer Text */
 .footer-text {
   position: absolute;
@@ -263,7 +272,7 @@ h1 {
   color: #333;
 }
 
-
+/* Empty Cart Message */
 .empty-cart-message {
   text-align: center;
   font-size: 18px;
@@ -297,182 +306,166 @@ h1 {
   width: 200px;
   margin: 20px auto;
 }
-
 </style>
+
 <script>
 function formatMoney(amount) {
-  amount = Number(amount) / 100; 
+  amount = Number(amount) / 100;
   return `$${amount.toFixed(2)}`;
 }
 
-function updateCartDisplay() {
-  fetch('/cart.js')
-    .then(response => response.json())
-    .then(cart => {
-      const cartItemsContainer = document.getElementById('cart-items');
-      const cartSummary = document.getElementById('cart-summary');
-      const emptyCartMessage = document.createElement('div');
-      emptyCartMessage.className = 'empty-cart-message';
+document.addEventListener('DOMContentLoaded', function() {
+    updateCartDisplay();
 
-      cartItemsContainer.innerHTML = ''; // Clear previous cart items
-
-      if (!cart || !cart.items) {
-        console.error('Invalid cart data:', cart);
-        return;
-      }
-
-      if (cart.item_count === 0) {
-        cartSummary.style.display = 'none'; 
-        emptyCartMessage.innerHTML = `
-          <img src="path_to_your_empty_cart_image.png" alt="Empty Cart"/>
-          <h2>Your Cart is Empty</h2>
-          <p>It looks like you haven't added anything to your cart yet. Start shopping now to find great deals!</p>
-          <button onclick="window.location.href='/collections/all'" class="btn continue-shopping">Continue Shopping</button>
-        `;
-        cartItemsContainer.appendChild(emptyCartMessage);
-        return;
-      }
-
-      cart.items.forEach(item => {
-        if (item.image && item.title && item.quantity && item.price) {
-          // Fetch all product variants for the current product
-          fetch(`/products/${item.handle}.js`)
-            .then(response => response.json())
-            .then(product => {
-              let variantOptions = '';
-              product.variants.forEach(variant => {
-                variantOptions += `<option value="${variant.id}" ${variant.id === item.variant_id ? 'selected' : ''}>
-                                    ${variant.title} - ${formatMoney(variant.price)}
-                                  </option>`;
-              });
-
-              cartItemsContainer.innerHTML += `
-                <div class="cart-item">
-                  <img src="${item.image}" alt="${item.title}" />
-                  <div class="cart-item-details">
-                    <h3>${item.title}</h3>
-                    <p>Total: ${formatMoney(item.price * item.quantity)}</p>
-                    <label for="variant-select-${item.id}">Choose Variant:</label>
-                    <select data-id="${item.id}" data-product-id="${item.product_id}" class="variant-select" id="variant-select-${item.id}">
-                      ${variantOptions}
-                    </select>
-                    <button data-id="${item.id}" class="update-variant" style="display: none;">Update Variant</button>
-                    <div class="quantity-container">
-                      <input type="number" min="1" value="${item.quantity}" data-id="${item.id}" class="quantity-input" />
-                      <button data-id="${item.id}" class="update-quantity" style="display: none;">Update Quantity</button>
-                    </div>
-                    <button data-id="${item.id}" class="remove-item">Remove</button>
-                  </div>
-                </div>
-              `;
-            })
-            .catch(error => console.error('Error fetching product:', error));
-        } else {
-          console.error('Item data missing:', item);
+    // Handle variant update button clicks
+    document.getElementById('cart-items').addEventListener('click', function(event) {
+        if (event.target.matches('.update-variant')) {
+            const itemKey = event.target.dataset.itemKey;
+            const selectedSize = document.getElementById(`size-${itemKey}`).value;
+            const selectedColor = document.getElementById(`color-${itemKey}`).value;
+            console.log(`Update variant for item ${itemKey} with size ${selectedSize} and color ${selectedColor}`);
         }
-      });
-
-      if (cart.item_count > 0) {
-        cartSummary.style.display = 'block';
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching cart:', error);
+        if (event.target.matches('.remove-item')) {
+            const itemId = event.target.dataset.id;
+            removeItemFromCart(itemId);
+        }
+        if (event.target.matches('.update-quantity')) {
+            const itemKey = event.target.dataset.itemKey;
+            const quantity = document.getElementById(`quantity-${itemKey}`).value;
+            updateItemQuantity(itemKey, quantity);
+        }
     });
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-  updateCartDisplay();
+    // Function to update cart display
+    function updateCartDisplay() {
+        fetch('/cart.js')
+            .then(response => response.json())
+            .then(cart => {
+                const cartItemsContainer = document.getElementById('cart-items');
+                const checkoutButton = document.getElementById('checkout-button');
+                const shopButton = document.getElementById('shop-button');
+                cartItemsContainer.innerHTML = '';
 
-  document.addEventListener('change', (event) => {
-    if (event.target.matches('.quantity-input')) {
-      const updateButton = event.target.nextElementSibling;
-      updateButton.style.display = 'block'; 
-    } else if (event.target.matches('.variant-select')) {
-      const updateButton = event.target.nextElementSibling;
-      updateButton.style.display = 'block';
+                if (cart.items.length === 0) {
+                    cartItemsContainer.innerHTML = `
+                        <div class="empty-cart-message">
+                            <img src="/path/to/empty-cart-image.png" alt="Empty Cart">
+                            <h2>Your cart is empty</h2>
+                            <p>It looks like you haven't added any items to your cart yet.</p>
+                            <a href="/" class="btn">Continue Shopping</a>
+                        </div>
+                    `;
+                    checkoutButton.style.display = 'none';
+                    shopButton.style.display = 'inline-block'; // Show shop button
+                    return;
+                }
+
+                checkoutButton.style.display = 'inline-block'; // Show checkout button
+                shopButton.style.display = 'none'; // Hide shop button
+
+                cart.items.forEach(item => {
+                    if (item.product_id && item.variant_id) {
+                        fetch(`/products/${item.handle}.js`)
+                            .then(response => response.json())
+                            .then(product => {
+                                const sizeOptions = [];
+                                const colorOptions = [];
+                                
+                                product.variants.forEach(variant => {
+                                    const sizeOption = variant.options[0];
+                                    const colorOption = variant.options[1];
+
+                                    if (!sizeOptions.includes(sizeOption)) {
+                                        sizeOptions.push(sizeOption);
+                                    }
+                                    if (!colorOptions.includes(colorOption)) {
+                                        colorOptions.push(colorOption);
+                                    }
+                                });
+
+                                const selectedVariant = product.variants.find(variant => variant.id === item.variant_id);
+
+                                const cartItemHTML = `
+                                    <div class="cart-item">
+                                        <img src="${item.image}" alt="${item.title}">
+                                        <div class="cart-item-details">
+                                            <h3>${item.title}</h3>
+                                            <p>${formatMoney(item.price)}</p>
+                                            <div class="description-container">${item.description}</div>
+                                            <div class="variant-dropdown-container">
+                                                <label for="size-${item.key}">Size</label>
+                                                <select id="size-${item.key}" class="size-select" data-item-key="${item.key}">
+                                                    ${sizeOptions.map(size => `
+                                                        <option value="${size}" ${selectedVariant.options[0] === size ? 'selected' : ''}>${size}</option>
+                                                    `).join('')}
+                                                </select>
+                                                
+                                                <label for="color-${item.key}">Color</label>
+                                                <select id="color-${item.key}" class="color-select" data-item-key="${item.key}">
+                                                    ${colorOptions.map(color => `
+                                                        <option value="${color}" ${selectedVariant.options[1] === color ? 'selected' : ''}>${color}</option>
+                                                    `).join('')}
+                                                </select>
+
+                                                <div class="button-container">
+                                                    <button class="update-variant" data-item-key="${item.key}">Update Variant</button>
+                                                    <button class="remove-item" data-id="${item.key}">Remove Item</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="quantity-container">
+                                            <label for="quantity-${item.key}">Quantity</label>
+                                            <input type="number" id="quantity-${item.key}" name="quantity" value="${item.quantity}" min="1" data-key="${item.key}" class="quantity-input">
+                                            <button class="update-quantity" data-item-key="${item.key}">Update Quantity</button>
+                                        </div>
+                                    </div>
+                                `;
+
+                                cartItemsContainer.insertAdjacentHTML('beforeend', cartItemHTML);
+                            })
+                            .catch(error => console.error('Error fetching product data:', error));
+                    } else {
+                        console.error('Missing product information:', item);
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching cart data:', error));
     }
-  });
 
-  document.addEventListener('click', (event) => {
-    if (event.target.matches('.update-quantity')) {
-      const quantityInput = event.target.previousElementSibling;
-      const quantity = parseInt(quantityInput.value, 10);
-      const id = event.target.dataset.id;
-
-      fetch('/cart/change.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: id,
-          quantity: quantity
+    function removeItemFromCart(itemId) {
+        fetch(`/cart/change.js`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: itemId,
+                quantity: 0
+            })
         })
-      })
-      .then(response => response.json())
-      .then(cart => {
-        updateCartDisplay();
-      })
-      .catch(error => {
-        console.error('Error updating quantity:', error);
-      });
-    } else if (event.target.matches('.update-variant')) {
-      const selectElement = event.target.previousElementSibling;
-      const variantId = selectElement.value;
-      const cartItemId = selectElement.dataset.id;
-
-     
-      fetch('/cart/change.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: cartItemId,
-          quantity: 0 
+        .then(response => response.json())
+        .then(() => {
+            updateCartDisplay(); // Update cart display after item removal
         })
-      })
-      .then(() => {
-        return fetch('/cart/add.js', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            id: variantId,
-            quantity: 1 
-          })
-        });
-      })
-      .then(response => response.json())
-      .then(cart => {
-        updateCartDisplay(); 
-      })
-      .catch(error => {
-        console.error('Error updating variant:', error);
-      });
-    } else if (event.target.matches('.remove-item')) {
-      const id = event.target.dataset.id;
-
-      fetch('/cart/change.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: id,
-          quantity: 0
-        })
-      })
-      .then(response => response.json())
-      .then(cart => {
-        updateCartDisplay();
-      })
-      .catch(error => {
-        console.error('Error removing item:', error);
-      });
+        .catch(error => console.error('Error removing item from cart:', error));
     }
-  });
+
+    function updateItemQuantity(itemKey, quantity) {
+        fetch(`/cart/change.js`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: itemKey,
+                quantity: parseInt(quantity, 10)
+            })
+        })
+        .then(response => response.json())
+        .then(() => {
+            updateCartDisplay(); // Update cart display after quantity change
+        })
+        .catch(error => console.error('Error updating item quantity:', error));
+    }
 });
 </script>
